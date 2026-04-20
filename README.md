@@ -58,10 +58,28 @@ Una vez instalado el software, puede que Windows no sepa donde está guardado el
 ```
 
 # Uso
-Ejecutar:
-```Powershell
-    mvn clean test
+## Pruebas locales
+### Postman y base de datos en disco
+1. Levantar postgresdb:
+```bash
+docker-compose up
 ```
+2. Correr la app con perfil local:
+```bash
+mvn spring-boot:run "-Dspring-profiles.active=local"
+```
+3. Correr el suite de test en postman.
+
+### Unit testing con Hibernate
+```bash
+    mvn clean test -Dspring-profiles.active=local
+```
+
+# Info. Repositorio
+Hay un proyecto hermano llamado ["frontend-abm-usuarios"](https://github.com/GonzaEC/frontend-adm-usuarios)
+Hay 2 ramas en main, estan espejadas.
+La rama no main (nombre no especificado) se encarga del hosting.
+La rama main esta reservada para la implementacion en k8.
 
 # TODO
 - [ ] Estructurar la base de datos en Postgres para manejar la relación entre los inversores y los tokens de los proyectos.
@@ -72,3 +90,4 @@ Ejecutar:
 - [x] Testear que un Project tenga una relación @ManyToOne real con User en lugar de solo un Long ownerId.
 - [ ] Crear un ProjectController para recibir peticiones HTTP reales.
 - [ ] ApiResponse, hacer que método success use un constructor o método que acepte el HttpStatus directamente, para que el int status del JSON coincida siempre con el código real de la ResponseEntity.
+- [ ] Aplicar la regla "Un admin no puede demotear a otro admin" desde el front-end (revisar el controlador asociado)

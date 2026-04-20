@@ -62,17 +62,17 @@ public class UserService
 
 	public User updateUser(Long id, User details)
 	{
-		User user = userRepository.findById(id)
+		User user = getUserById(id)
 			.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
 		user.setEmail(details.getEmail());
-		// se pued agregar mas campos aca
+		// se puede agregar mas campos aca
 		return userRepository.save(user);
 	}
 
 	public void deactivateUser(Long id)
 	{
-		User user = userRepository.findById(id)
+		User user = getUserById(id)
 			.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 		user.setActive(false);
 		userRepository.save(user);
@@ -80,7 +80,7 @@ public class UserService
 
 	public void activateUser(Long id)
 	{
-		User user = userRepository.findById(id)
+		User user = getUserById(id)
 			.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 		user.setActive(true);
 		userRepository.save(user);
@@ -96,16 +96,13 @@ public class UserService
 		return userRepository.findById(id);
 	}
 
-	public User assignRole(Long userId, Long roleId)
+	public Optional<Role> getRoleById(Long id)
 	{
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+		return roleRepository.findById(id);
+	}
 
-		Role role = roleRepository.findById(roleId)
-			.orElseThrow(() -> new RoleNotFoundException(
-				"Rol no encontrado: " + roleId
-			));
-
+	public User assignRole(User user, Role role)
+	{
 		user.setRole(role);
 		return userRepository.save(user);
 	}

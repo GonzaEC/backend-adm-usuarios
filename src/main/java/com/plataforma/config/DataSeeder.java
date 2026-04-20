@@ -97,22 +97,27 @@ public class DataSeeder implements CommandLineRunner
 		if (seedAdmin) createAdminIfNotFound();
 	}
 
-	private void createAdminIfNotFound()
+	private void saveAdmin(String email, String password)
 	{
-		String adminEmail = "admin@admin.com";
-		if (userRepository.findByEmail(adminEmail).isPresent()) return;
+		if (userRepository.findByEmail(email).isPresent()) return;
 
 		Role adminRole = roleRepository.findByName(RoleConstants.ADMIN)
 			.orElseThrow(() -> new RuntimeException("Rol ADMIN no encontrado"));
 
 		User admin = User.builder()
-			.email(adminEmail)
-			.password(passwordEncoder.encode("admin123"))
+			.email(email)
+			.password(passwordEncoder.encode(password))
 			.role(adminRole)
 			.active(true)
 			.build();
 
 		userRepository.save(admin);
+	}
+
+	private void createAdminIfNotFound()
+	{
+		saveAdmin("admin@admin.com", "admin123");
+		saveAdmin("admin2@admin.com", "admin123");
 	}
 
 	private Permission getOrCreatePermission(String name)
