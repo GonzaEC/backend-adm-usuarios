@@ -23,7 +23,6 @@ import com.plataforma.model.Permission;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j // Agregamos log de Lombok para manejar errores
@@ -43,43 +42,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		try {
 			String authHeader = request.getHeader("Authorization");
 
-			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				String token = authHeader.substring(7);
-
-				if (jwtUtils.validateToken(token)) {
-					String email = jwtUtils.getSubject(token);
-
-					// Buscamos al usuario real para sacar sus permisos
-					User user = userRepository.findByEmail(email)
-							.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-					// Cargamos Roles Y Permisos (Para usuarios con un solo rol)
-					List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
-					Role role = user.getRole(); 
-
-					// 1. Agregamos el rol único
-					authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
-
-					// 2. Agregamos los permisos de ese rol
-					for (Permission permission : role.getPermissions()) {
-						authorities.add(new SimpleGrantedAuthority(permission.getName()));
-					}
-
-					// Pasamos el objeto 'user' completo en lugar de solo el email
-					// Útil para después obtener el ID del usuario logueado en los controladores
-					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-							user, null, authorities);
-
-					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-					SecurityContextHolder.getContext().setAuthentication(authToken);
-				}
+			if (authHeader == null || !authHeader.startsWith("Bearer "))
+			{
+				filterChain.doFilter(request, response);
+				return;
 			}
-		} catch (Exception e) {
-			// para que si el token es inválido o expiró, la app no se rompa.
-			log.error("No se pudo establecer la autenticación: {}", e.getMessage());
-		}
+			String token = authHeader.substring(7);
 
+			if (!jwtUtils.validateToken(token))
+			{
+				filterChain.doFilter(request, response);
+				return;
+			}
+
+			String email = jwtUtils.getSubject(token);
+
+			// Buscar usuario
+			User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+			// Cargar Roles Y Permisos
+			List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+			Role role = user.getRole();
+
+			if (user.getRole() == null) {
+				log.error("USER SIN ROLE: {}", user.getEmail());
+			}
+
+			// Agregar el rol único
+			authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+
+			// Agregar los permisos de ese rol
+			for (Permission permission : role.getPermissions()) authorities.add(
+				new SimpleGrantedAuthority(permission.getName())
+			);
+
+			// Auth
+			UsernamePasswordAuthenticationToken authToken =
+				new UsernamePasswordAuthenticationToken(user, null, authorities);
+
+
+			authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			SecurityContextHolder.getContext().setAuthentication(authToken);
+		}
+		catch (Exception e)
+		{
+			// para que si el token es inválido o expiró, la app no se rompa.
+			log.error("JWT FILTER ERROR", e);
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido");
+			return;
+		}
 		filterChain.doFilter(request, response);
 	}
 }

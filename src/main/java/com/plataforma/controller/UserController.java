@@ -62,7 +62,7 @@ public class UserController
 	// GET /api/users?page=0&size=10
 	// Listado paginado. Spring inyecta Pageable desde los query params.
 	@GetMapping
-	@PreAuthorize("hasAuthority(PermissionConstants.USER_READ)")
+	@PreAuthorize("hasAuthority('user:read')")
 	public ResponseEntity<ApiResponse<Page<User>>> getAll(Pageable pageable)
 	{
 		return ResponseEntity.ok(
@@ -70,15 +70,15 @@ public class UserController
 		);
 	}
 
-    // GET /api/users/{id}
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('user:read')")
-    public ResponseEntity<ApiResponse<User>> getById(@PathVariable Long id)
-    {
-        User user = userService.getUserById(id)
-            .orElseThrow(() -> new UserNotFoundException(id));
-        return ResponseEntity.ok(ApiResponse.success("Usuario encontrado", user));
-    }
+	// GET /api/users/{id}
+	@GetMapping("/{id}")
+	@PreAuthorize("hasAuthority('user:read')")
+	public ResponseEntity<ApiResponse<User>> getById(@PathVariable Long id)
+	{
+		User user = userService.getUserById(id)
+			.orElseThrow(() -> new UserNotFoundException(id));
+		return ResponseEntity.ok(ApiResponse.success("Usuario encontrado", user));
+	}
 
     // PUT /api/users/{id}
     // Edición de datos del usuario (por ahora solo email).

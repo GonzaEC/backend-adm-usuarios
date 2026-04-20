@@ -11,27 +11,27 @@ import lombok.*;
 @Builder
 public class User
 {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // Long en lugar de long — mejor práctica con JPA y null checks
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(unique = true)
-    private String email;
+	@Column(unique = true)
+	private String email;
 
-    private String password;
+	private String password;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@JoinColumn(name = "role_id", nullable = false)
+	private Role role;
 
-    @Builder.Default
-    private boolean active = true;
+	@Builder.Default
+	private boolean active = true;
 
-    public boolean hasPermission(String permissionName)
-    {
-        if (this.role == null || this.role.getPermissions() == null)
-            return false;
-        return this.role.getPermissions().stream()
-            .anyMatch(p -> p.getName().equals(permissionName));
-    }
+	public boolean hasPermission(String permissionName)
+	{
+		if (this.role == null || this.role.getPermissions() == null)
+			return false;
+		return this.role.getPermissions().stream()
+			.anyMatch(p -> p.getName().equals(permissionName));
+	}
 }

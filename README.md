@@ -91,3 +91,5 @@ La rama main esta reservada para la implementacion en k8.
 - [ ] Crear un ProjectController para recibir peticiones HTTP reales.
 - [ ] ApiResponse, hacer que método success use un constructor o método que acepte el HttpStatus directamente, para que el int status del JSON coincida siempre con el código real de la ResponseEntity.
 - [ ] Aplicar la regla "Un admin no puede demotear a otro admin" desde el front-end (revisar el controlador asociado)
+- [x] Quitar niveles de anidamiento a JwtAuthenticationFilter.java
+- [ ] Limpiar/emprolijar/Simplificar RbacIntegrationTest.java

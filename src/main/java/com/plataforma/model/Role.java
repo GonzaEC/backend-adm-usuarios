@@ -25,12 +25,12 @@ public class Role
 	private String name; // Ej: "ADMIN", "INVESTOR"
 
 	// Agregado: descripción legible del rol para mostrarlo en el detalle
-    private String description;
+	private String description;
 
-    // Agregado: para borrado lógico consistente con UserService.deactivateUser()
-    // @Builder.Default hace que el builder use true cuando no se especifica el campo
-    @Builder.Default
-    private boolean active = true;
+	// Agregado: para borrado lógico consistente con UserService.deactivateUser()
+	// @Builder.Default hace que el builder use true cuando no se especifica el campo
+	@Builder.Default
+	private boolean active = true;
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(
