@@ -1,5 +1,7 @@
 package com.plataforma.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +28,24 @@ public class User
 
 	@Builder.Default
 	private boolean active = true;
+
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@Column(name = "updated_at")
+	private LocalDateTime updateAt;
+
+	@PrePersist
+	protected void onCreate()
+	{
+		this.createdAt = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	protected void onUpdate()
+	{
+		this.updateAt = LocalDateTime.now();
+	}
 
 	public boolean hasPermission(String permissionName)
 	{
