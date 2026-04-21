@@ -1,6 +1,8 @@
 // src/main/java/com/plataforma/model/Project.java
 package com.plataforma.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,13 +41,31 @@ public class Project
 {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long   id;
+	private Long id;
 
 	private String name;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "owner_id")
 	private User owner;
+
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@Column(name = "updated_at")
+	private LocalDateTime updateAt;
+
+	@PrePersist
+	protected void onCreate()
+	{
+		this.createdAt = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	protected void onUpdate()
+	{
+		this.updateAt = LocalDateTime.now();
+	}
 
 	public boolean isOwnedBy(User user)
 	{
