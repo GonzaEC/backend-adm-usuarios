@@ -10,12 +10,13 @@ import lombok.*;
 @Entity
 @Table(name = "roles")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Role
+public class Role extends Auditable
 {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

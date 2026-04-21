@@ -93,3 +93,5 @@ La rama main esta reservada para la implementacion en k8.
 - [ ] Aplicar la regla "Un admin no puede demotear a otro admin" desde el front-end (revisar el controlador asociado)
 - [x] Quitar niveles de anidamiento a JwtAuthenticationFilter.java
 - [ ] Limpiar/emprolijar/Simplificar RbacIntegrationTest.java
+- [ ] Armar test que aseguren consistencia entre Investement.tokensPurchased y UserProject.tokensAmount.
+- [ ] Armar test que asegure que la sumatoria de UserProject.tokensAmount no supere el Project.max_amount_tokens.

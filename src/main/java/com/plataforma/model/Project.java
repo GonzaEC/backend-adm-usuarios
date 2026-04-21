@@ -1,7 +1,8 @@
 // src/main/java/com/plataforma/model/Project.java
 package com.plataforma.model;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,10 +35,11 @@ import lombok.*;
 @Entity
 @Table(name="projects")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Project
+public class Project extends Auditable
 {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,23 +51,10 @@ public class Project
 	@JoinColumn(name = "owner_id")
 	private User owner;
 
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
+	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<UserProject> participants = new ArrayList<>();
 
-	@Column(name = "updated_at")
-	private LocalDateTime updateAt;
-
-	@PrePersist
-	protected void onCreate()
-	{
-		this.createdAt = LocalDateTime.now();
-	}
-
-	@PreUpdate
-	protected void onUpdate()
-	{
-		this.updateAt = LocalDateTime.now();
-	}
+	private Long max_amount_tokens;
 
 	public boolean isOwnedBy(User user)
 	{
