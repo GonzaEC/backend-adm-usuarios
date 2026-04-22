@@ -54,10 +54,43 @@ public class Project extends Auditable
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserProject> participants = new ArrayList<>();
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	@Builder.Default
+	private ProjectState state = ProjectState.DRAFT;
+
 	private Long max_amount_tokens;
 
 	public boolean isOwnedBy(User user)
 	{
 		return this.owner != null && this.owner.equals(user);
+	}
+
+	public void advanceState()
+	{
+		switch (this.state)
+		{
+			case DRAFT    -> this.state = ProjectState.PRE_OPEN;
+			case PRE_OPEN -> this.state = ProjectState.OPEN;
+			case OPEN     -> this.state = ProjectState.CLOSED;
+			case CLOSED   -> throw new IllegalStateException(
+				"El proyecto ya está finalizado"
+			);
+		}
+	}
+
+	public void changeState(ProjectState newState)
+	{
+		if (newState.ordinal() < this.state.ordinal())
+			throw new IllegalStateException(
+				"No se puede retroceder de estado"
+			);
+		this.state = newState;
+	}
+
+	public boolean canReceiveInvestments()
+	{
+		return this.state == ProjectState.PRE_OPEN
+			|| this.state == ProjectState.OPEN;
 	}
 }
