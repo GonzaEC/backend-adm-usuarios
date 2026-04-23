@@ -1,8 +1,10 @@
 # RBAC-Springboot
+Modulo backend implementado en Spring-Boot. Atiende las peticiones de ["frontend-adm-usuarios"](https://github.com/GonzaEC/frontend-adm-usuarios)
+
 
 # Requisitos
 * [JDK 21 (LTS)+](https://www.oracle.com/java/technologies/downloads/)
-* [Spring Boot 3.2.4+](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot/3.2.4)
+* [Spring-Boot 3.2.4+](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot/3.2.4)
 * [Maven: 3.9+](https://maven.apache.org/download.cgi?.)
 
 # Dependencias Principales
@@ -12,6 +14,7 @@
 * H2 Database (**```com.h2database:h2```**) Base de datos en memoria (runtime)
 * Lombok (**```org.projectlombok:lombok```**) para reducir boilerplate (getters, setters, builders, etc.)
 * Spring Boot Test (**```spring-boot-starter-test```**) para testing (JUnit, Mockito, etc.)
+* Flyway
 
 # Plugins de Build
 **Spring Boot Maven Plugin** que permite:
@@ -75,12 +78,6 @@ mvn spring-boot:run "-Dspring-profiles.active=local"
     mvn clean test -Dspring-profiles.active=local
 ```
 
-# Info. Repositorio
-Hay un proyecto hermano llamado ["frontend-abm-usuarios"](https://github.com/GonzaEC/frontend-adm-usuarios)
-Hay 2 ramas en main, estan espejadas.
-La rama no main (nombre no especificado) se encarga del hosting.
-La rama main esta reservada para la implementacion en k8.
-
 # TODO
 - [ ] Estructurar la base de datos en Postgres para manejar la relación entre los inversores y los tokens de los proyectos.
 - [ ] Implementar los servicios para las acciones específicas de los Inversores (tokens, mercado secundario).
@@ -95,3 +92,4 @@ La rama main esta reservada para la implementacion en k8.
 - [ ] Limpiar/emprolijar/Simplificar RbacIntegrationTest.java
 - [ ] Armar test que aseguren consistencia entre Investement.tokensPurchased y UserProject.tokensAmount.
 - [ ] Armar test que asegure que la sumatoria de UserProject.tokensAmount no supere el Project.max_amount_tokens.
+- [ ] Considerar borrar application-test-h2.properties ya que al implementar flyway se emplea una base de datos real de postgresql.

@@ -1,3 +1,4 @@
+// src/main/java/com/plataforma/model/Auditable.java
 package com.plataforma.model;
 
 import java.time.LocalDateTime;

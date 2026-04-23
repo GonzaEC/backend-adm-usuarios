@@ -1,3 +1,4 @@
+// src/main/java/com/plataforma/model/User.java
 package com.plataforma.model;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-// src/test/java/com/plataforma/service/UserMnagementIntegrationTest.java
+// src/test/java/com/plataforma/service/UserManagementIntegrationTest.java
 package com.plataforma.service;
 
 import com.plataforma.constant.RoleConstants;
