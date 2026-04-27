@@ -19,7 +19,7 @@ public class Investment extends Auditable
 	@ManyToOne(optional = false)
 	private Project project;
 
-	private Long tokensPurchased; // debe ser consitente con UserProject.tokensAmount
+	private Long tokensPurchased;
 
 	private BigDecimal amountPaid; // dinero real
 	private BigDecimal tokenPrice; // cuanto costaba el token en ese momento.
