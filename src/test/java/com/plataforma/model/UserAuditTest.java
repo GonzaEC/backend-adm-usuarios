@@ -99,6 +99,7 @@ class UserAuditTest
 		Project project = Project.builder()
 			.name("Test Project")
 			.owner(user)
+			.tokenPrice(new java.math.BigDecimal("100.00"))
 			.build();
 
 			em.persist(project);
