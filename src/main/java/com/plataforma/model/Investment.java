@@ -4,9 +4,11 @@ package com.plataforma.model;
 import java.math.BigDecimal;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
 @Table(name = "investments")
+@Data
 public class Investment extends Auditable
 {
 	@Id
