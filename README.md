@@ -62,6 +62,28 @@ Una vez instalado el software, puede que Windows no sepa donde está guardado el
 
 # Uso
 ## Pruebas locales
+### Test Unitarios
+Ejecutar Todos menos "IntegrationTest":
+```bash
+    mvn test -Dtest=!*IntegrationTest
+```
+
+### Tests Integracion
+1. Levantar postgresdb:
+```bash
+docker-compose up
+```
+2. Ejecutar:
+```bash
+    mvn test -Dtest=*IntegrationTest
+```
+
+### Tests Especificos
+Ejecutar:
+```bash
+    mvn test -Dtest=AccessControlServiceTest
+```
+
 ### Postman y base de datos en disco
 1. Levantar postgresdb:
 ```bash
