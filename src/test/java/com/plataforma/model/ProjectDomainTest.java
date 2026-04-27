@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests de dominio puro.
@@ -32,6 +33,20 @@ class ProjectDomainTest
 			.tokenPrice(BigDecimal.valueOf(100))
 			.state(state)
 			.build();
+	}
+
+	@Nested
+	@DisplayName("constructor()")
+	class Constructor
+	{
+		@Test
+		@DisplayName("El proyecto debe iniciarse como 'Borrador'")
+		void projectShouldStartInDraft()
+		{
+			Project project = Project.builder().build();
+
+			assertEquals(ProjectState.DRAFT, project.getState());
+		}
 	}
 
 	@Nested
