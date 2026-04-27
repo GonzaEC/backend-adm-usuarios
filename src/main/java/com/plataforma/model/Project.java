@@ -62,6 +62,7 @@ public class Project extends Auditable
 
 	private Long maxAmountTokens;
 
+	@Column(nullable = false, precision = 19, scale = 2)
 	private BigDecimal tokenPrice; // Representa el precio unitario del token al momento de publicar el proyecto.
 	// Se usa en InvestmentServiceImpl para calcular el totalAmount.
 
