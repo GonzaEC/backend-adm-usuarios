@@ -5,10 +5,12 @@ import java.math.BigDecimal;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Setter;
 
 @Entity
 @Table(name = "investments")
 @Data
+@Setter
 public class Investment extends Auditable
 {
 	@Id
