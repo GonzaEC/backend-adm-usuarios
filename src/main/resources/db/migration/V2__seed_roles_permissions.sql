@@ -31,21 +31,21 @@ VALUES
 INSERT INTO roles_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r, permissions p
-WHERE r.name = 'BASIC' AND p.name = 'PROJECT_READ';
+WHERE r.name = 'BASIC' AND p.name = 'project:read';
 
 -- INVESTOR → PROJECT_READ, INVEST_CREATE
 INSERT INTO roles_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r, permissions p
 WHERE r.name = 'INVESTOR'
-AND p.name IN ('PROJECT_READ', 'INVEST_CREATE');
+AND p.name IN ('project:read', 'invest:create');
 
 -- DEVELOPER → PROJECT_READ, CREATE, UPDATE
 INSERT INTO roles_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r, permissions p
 WHERE r.name = 'DEVELOPER'
-AND p.name IN ('PROJECT_READ', 'PROJECT_CREATE', 'PROJECT_UPDATE');
+AND p.name IN ('project:read', 'project:create', 'project:update');
 
 -- ADMIN → TODOS
 INSERT INTO roles_permissions (role_id, permission_id)
