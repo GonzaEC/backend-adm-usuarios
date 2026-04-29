@@ -2,22 +2,20 @@ package com.plataforma.service;
 
 import com.plataforma.model.*;
 import com.plataforma.repository.UserRepository;
+import com.plataforma.AbstractIntegrationTest;
 import com.plataforma.exception.UnauthorizedAccessException;
 import com.plataforma.exception.UserNotFoundException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class AuthIntegrationTest
+import org.junit.jupiter.api.Tag;
+
+@Tag("integration")
+class AuthIntegrationTest extends AbstractIntegrationTest
 {
 	@Autowired
 	private AuthService authService;

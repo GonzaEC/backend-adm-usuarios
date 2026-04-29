@@ -8,6 +8,7 @@ import com.plataforma.repository.UserRepository;
 
 import com.plataforma.exception.UnauthorizedAccessException;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -18,12 +19,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.plataforma.exception.DuplicateRoleException;
 import com.plataforma.repository.PermissionRepository;
 
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 class RoleServiceTest
 {
 	@Mock

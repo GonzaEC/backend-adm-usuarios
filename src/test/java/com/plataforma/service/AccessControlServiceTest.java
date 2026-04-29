@@ -5,11 +5,9 @@ package com.plataforma.service;
 import com.plataforma.model.Project;
 import com.plataforma.model.Role;
 import com.plataforma.model.User;
-import com.plataforma.model.Permission;
 
 // Excepciones
 import com.plataforma.exception.UnauthorizedAccessException;
-import com.plataforma.constant.PermissionConstants;
 import com.plataforma.constant.RoleConstants;
 import com.plataforma.exception.InsufficientPermissionsException;
 import com.plataforma.exception.OwnershipException;
@@ -17,11 +15,9 @@ import com.plataforma.exception.OwnershipException;
 // JUnit 5 para aserciones y motor tests
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 // Mockito para hacer test "en el aire" sin levantar Spring completo
@@ -44,25 +40,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *   - Integracion con AUTH0 o servicios similares.
  */
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 class AccessControlServiceTest
 {
 	@InjectMocks
 	private AccessControlService accessControlService;
 
-	// --- METODOS FACTORY PARA LIMPIAR EL CÓDIGO ---
-
 	private Role createRole(String name)
 	{
 		return Role.builder().name(name).build();
-	}
-
-	private Role createRoleWithPermissions(String name, String... permissions)
-	{
-		Set<Permission> perms = Arrays.stream(permissions)
-			.map(p -> Permission.builder().name(p).build())
-			.collect(Collectors.toSet());
-
-		return Role.builder().name(name).permissions(perms).build();
 	}
 
 	private User createUserWithRole(String roleName)

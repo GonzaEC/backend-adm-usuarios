@@ -6,6 +6,7 @@ import com.plataforma.model.*;
 import com.plataforma.repository.ProjectRepository;
 import com.plataforma.repository.RoleRepository;
 import com.plataforma.repository.UserRepository;
+import com.plataforma.AbstractIntegrationTest;
 import com.plataforma.constant.RoleConstants;
 
 import com.plataforma.exception.OwnershipException;
@@ -13,25 +14,15 @@ import com.plataforma.exception.OwnershipException;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Esto es un test de integracion. En caso que todo este ok, significa que:
- *   + Se instancio en memoria de trabajo una base de datos.
- *   + Se probo que la carga y recuperacion de datos funcionan.
- *   + Se aplicaron correctamente los test de control de acceso.
- *   + Se intancio usuarios en base de datos.
- *   + Se instancio project en base de datos.
- *   + Se instancio Roles en base de datos.
- */
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional // Revierte los cambios en la DB despues de cada test
-class UserServiceIntegrationTest
+import java.math.BigDecimal;
+
+import org.junit.jupiter.api.Tag;
+
+@Tag("integration")
+class UserServiceIntegrationTest extends AbstractIntegrationTest
 {
 	@Autowired
 	private AccessControlService accessControlService;
@@ -62,6 +53,8 @@ class UserServiceIntegrationTest
 		Project project = Project.builder()
 				.name("Energía Renovable")
 				.owner(savedUser)
+				.maxAmountTokens(100L)
+				.tokenPrice(BigDecimal.valueOf(100.00))
 				.build();
 		Project savedProject = projectRepository.save(project);
 
@@ -109,7 +102,11 @@ class UserServiceIntegrationTest
 		);
 
 		Project project = projectRepository.save(
-			Project.builder().owner(owner).build()
+			Project.builder()
+				.maxAmountTokens(100L)
+				.tokenPrice(BigDecimal.valueOf(100.00))
+				.owner(owner)
+				.build()
 		);
 
 		assertThrows(OwnershipException.class, () ->
@@ -134,11 +131,21 @@ class UserServiceIntegrationTest
 		);
 
 		projectRepository.save(
-			Project.builder().owner(dev).name("Solar").build()
+			Project.builder()
+				.owner(dev)
+				.maxAmountTokens(100L)
+				.tokenPrice(BigDecimal.valueOf(100.00))
+				.name("Solar")
+				.build()
 		);
 
 		projectRepository.save(
-			Project.builder().owner(dev).name("Eólico").build()
+			Project.builder()
+				.owner(dev)
+				.maxAmountTokens(100L)
+				.tokenPrice(BigDecimal.valueOf(100.00))
+				.name("Eólico")
+				.build()
 		);
 
 		var projects = projectRepository.findByOwner(dev);

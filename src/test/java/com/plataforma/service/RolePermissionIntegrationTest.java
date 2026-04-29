@@ -6,23 +6,22 @@ import com.plataforma.model.Role;
 
 import com.plataforma.repository.PermissionRepository;
 import com.plataforma.repository.RoleRepository;
+import com.plataforma.AbstractIntegrationTest;
 import com.plataforma.exception.RoleNotFoundException;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional // Limpia la DB después de cada test
-class RolePermissionIntegrationTest
+//@Transactional // Limpia la DB después de cada test
+@Tag("integration")
+class RolePermissionIntegrationTest extends AbstractIntegrationTest
 {
 
 	@Autowired

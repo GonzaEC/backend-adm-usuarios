@@ -3,6 +3,7 @@ package com.plataforma.model;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * no en la infraestructura.
  */
 @DisplayName("Dominio: Project")
+@Tag("unit")
 class ProjectDomainTest
 {
 	// =========================================================

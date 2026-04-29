@@ -1,5 +1,7 @@
+// src/test/java/com/plataforma/controller/TestSecurityController.java
 package com.plataforma.controller;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,12 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/test-security")
-public class TestSecurityController {
+@Profile({"test", "integration"})
+public class TestSecurityController
+{
 
-    @PreAuthorize("hasAuthority('PROJECT_DELETE')")
-    @DeleteMapping("/borrar")
-    public ResponseEntity<String> borrarSimulado() {
-        // Si el usuario llega hasta aquí, significa que tiene el permiso.
-        return ResponseEntity.ok("Borrado exitoso");
-    }
+	@PreAuthorize("hasAuthority('project:delete')")
+	@DeleteMapping("/borrar")
+	public ResponseEntity<String> borrarSimulado()
+	{
+		// Si el usuario llega hasta aquí, significa que tiene el permiso.
+		return ResponseEntity.ok("Borrado exitoso");
+	}
 }

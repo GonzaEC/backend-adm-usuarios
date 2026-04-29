@@ -1,25 +1,22 @@
 // src/test/java/com/plataforma/model/AuditIntegrationTest.java
 package com.plataforma.model;
 
+import com.plataforma.AbstractIntegrationTest;
 import com.plataforma.constant.RoleConstants;
 import com.plataforma.repository.RoleRepository;
 import com.plataforma.repository.UserRepository;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class AuditIntegrationTest
+@Tag("integration")
+class AuditIntegrationTest extends AbstractIntegrationTest
 {
 
 	@Autowired

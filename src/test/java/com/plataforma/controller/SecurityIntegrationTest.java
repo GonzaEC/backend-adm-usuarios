@@ -1,100 +1,141 @@
+// src/test/java/com/plataforma/controller/SecurityIntegrationTest.java
 package com.plataforma.controller;
 
-import com.plataforma.model.Permission;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.plataforma.AbstractIntegrationTest;
+import com.plataforma.constant.RoleConstants;
 import com.plataforma.model.Role;
 import com.plataforma.model.User;
+import com.plataforma.repository.RoleRepository;
 import com.plataforma.repository.UserRepository;
-import com.plataforma.security.JwtUtils;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Map;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-class SecurityIntegrationTest {
+/**
+ * Tests de seguridad contra Postgres real (Testcontainers).
+ *
+ * Estrategia INTEGRATION:
+ *   - Extiende AbstractIntegrationTest → Postgres real en Docker.
+ *   - Sin MockBean: todos los repositorios son reales.
+ *   - El flujo completo es: registrar usuario → login → obtener token → llamar endpoint.
+ *   - Flyway aplica las migraciones reales antes de cada suite.
+ *
+ * Lo que se verifica aquí:
+ *   1. 401 sin token (igual que unit, pero con Postgres real en el stack completo).
+ *   2. 401 con token inválido (ídem).
+ *   3. 403 cuando un usuario DEVELOPER (sin PROJECT_DELETE) intenta borrar.
+ *   4. 200 cuando un usuario ADMIN (con PROJECT_DELETE) intenta borrar.
+ *
+ * La diferencia respecto a SecurityUnitTest es que aquí el token es emitido
+ * tras un login real con credenciales persistidas en Postgres, garantizando
+ * que el flujo completo de autenticación/autorización funciona end-to-end.
+ */
+@Tag("integration")
+class SecurityIntegrationTest extends AbstractIntegrationTest
+{
+	@Autowired
+	private MockMvc mockMvc;
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private ObjectMapper objectMapper;
 
-    @Autowired
-    private JwtUtils jwtUtils;
+	@Autowired
+	private UserRepository userRepository;
 
-    // ¡CLAVE! Mockeamos el repositorio para que el Filtro JWT encuentre a los
-    // usuarios
-    @MockBean
-    private UserRepository userRepository;
+	@Autowired
+	private RoleRepository roleRepository;
 
-    // --- MÉTODOS DE AYUDA ---
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-    private String generarTokenYMockearBD(String email, String roleName, String... permisos) {
-        // 1. Creamos los permisos
-        Set<Permission> perms = Arrays.stream(permisos)
-                .map(p -> Permission.builder().name(p).build())
-                .collect(Collectors.toSet());
+	// ── Helpers ────────────────────────────────────────────────────────────────
 
-        // 2. Creamos el rol y el usuario
-        Role role = Role.builder().name(roleName).permissions(perms).build();
-        User mockUser = User.builder().id(1L).email(email).role(role).build();
+	/** Persiste un usuario con el rol dado y devuelve su token JWT. */
+	private String crearUsuarioYLogin(String roleName) throws Exception
+	{
+		Role role = roleRepository.findByName(roleName).orElseThrow();
+		String email = roleName.toLowerCase() + "+" + System.nanoTime() + "@mail.com";
 
-        // 3. Le decimos a Spring: "Cuando el filtro busque este email, devuelve este
-        // usuario"
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
+		userRepository.save(User.builder()
+			.email(email)
+			.password(passwordEncoder.encode("pass123"))
+			.role(role)
+			.active(true)
+			.build());
 
-        // 4. Generamos el token real
-        return jwtUtils.generateToken(mockUser);
-    }
+		return loginYObtenerToken(email, "pass123");
+	}
 
-    // --- ÍTEM 1: MIDDLEWARE FUNCIONANDO (401 Unauthorized) ---
+	/** Llama al endpoint de login real y extrae el token de la respuesta. */
+	private String loginYObtenerToken(String email, String password) throws Exception
+	{
+		String body = String.format(
+			"{\"email\": \"%s\", \"password\": \"%s\"}", email, password
+		);
 
-    @Test
-    void debeDevolver401_CuandoNoSeEnviaToken() throws Exception {
-        mockMvc.perform(get("/api/proyectos"))
-                .andExpect(status().isUnauthorized());
-    }
+		MvcResult result = mockMvc.perform(post("/api/auth/login")
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(body))
+			.andExpect(status().isOk())
+			.andReturn();
 
-    @Test
-    void debeDevolver401_CuandoSeEnviaTokenInvalido() throws Exception {
-        mockMvc.perform(get("/api/proyectos")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token-basura-123"))
-                .andExpect(status().isUnauthorized());
-    }
+		Map<?, ?> json = objectMapper.readValue(
+			result.getResponse().getContentAsString(), Map.class
+		);
+		return (String) json.get("data");
+	}
 
-    // --- ÍTEM 2 y 3: VALIDACIÓN POR PERMISO (403 Forbidden vs 200 OK) ---
+	// ── Tests: 401 ─────────────────────────────────────────────────────────────
 
-    @Test
-    void debeDevolver403_CuandoUsuarioNoTienePermisoDeBorrado() throws Exception {
-        String tokenDev = generarTokenYMockearBD("dev@mail.com", "DEVELOPER", "PROJECT_READ");
+	@Test
+	void debeDevolver401_sinToken() throws Exception
+	{
+		mockMvc.perform(get("/api/proyectos"))
+			.andExpect(status().isUnauthorized());
+	}
 
-        // CAMBIO: Apuntamos al controlador de prueba
-        mockMvc.perform(delete("/api/test-security/borrar")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDev))
-                .andExpect(status().isForbidden()); // 403
-    }
+	@Test
+	void debeDevolver401_tokenInvalido() throws Exception
+	{
+		mockMvc.perform(get("/api/proyectos")
+			.header(HttpHeaders.AUTHORIZATION, "Bearer token-basura-123"))
+			.andExpect(status().isUnauthorized());
+	}
 
-    @Test
-    void debeDevolver200_CuandoAdminIntentaBorrar() throws Exception {
-        String tokenAdmin = generarTokenYMockearBD("admin@mail.com", "ADMIN", "PROJECT_DELETE");
+	// ── Tests: autorización por rol/permiso (flujo end-to-end) ─────────────────
 
-        // CAMBIO: Apuntamos al controlador de prueba
-        mockMvc.perform(delete("/api/test-security/borrar")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenAdmin))
-                .andExpect(status().isOk()); // 200
-    }
+	@Test
+	void debeDevolver403_developerSinPermisoProjectDelete() throws Exception
+	{
+		String tokenDev = crearUsuarioYLogin(RoleConstants.DEVELOPER);
+
+		mockMvc.perform(delete("/api/test-security/borrar")
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDev))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void debeDevolver200_adminConPermisoProjectDelete() throws Exception
+	{
+		String tokenAdmin = crearUsuarioYLogin(RoleConstants.ADMIN);
+
+		mockMvc.perform(delete("/api/test-security/borrar")
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenAdmin))
+			.andExpect(status().isOk());
+	}
 }
