@@ -1,8 +1,10 @@
 # RBAC-Springboot
+Modulo backend implementado en Spring-Boot. Atiende las peticiones de ["frontend-adm-usuarios"](https://github.com/GonzaEC/frontend-adm-usuarios)
+
 
 # Requisitos
 * [JDK 21 (LTS)+](https://www.oracle.com/java/technologies/downloads/)
-* [Spring Boot 3.2.4+](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot/3.2.4)
+* [Spring-Boot 3.2.4+](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot/3.2.4)
 * [Maven: 3.9+](https://maven.apache.org/download.cgi?.)
 
 # Dependencias Principales
@@ -12,6 +14,7 @@
 * H2 Database (**```com.h2database:h2```**) Base de datos en memoria (runtime)
 * Lombok (**```org.projectlombok:lombok```**) para reducir boilerplate (getters, setters, builders, etc.)
 * Spring Boot Test (**```spring-boot-starter-test```**) para testing (JUnit, Mockito, etc.)
+* Flyway
 
 # Plugins de Build
 **Spring Boot Maven Plugin** que permite:
@@ -59,6 +62,28 @@ Una vez instalado el software, puede que Windows no sepa donde está guardado el
 
 # Uso
 ## Pruebas locales
+### Test Unitarios
+Ejecutar Todos menos "IntegrationTest":
+```bash
+    mvn test -Dtest=!*IntegrationTest
+```
+
+### Tests Integracion
+1. Levantar postgresdb:
+```bash
+docker-compose up
+```
+2. Ejecutar:
+```bash
+    mvn test -Dtest=*IntegrationTest
+```
+
+### Tests Especificos
+Ejecutar:
+```bash
+    mvn test -Dtest=AccessControlServiceTest
+```
+
 ### Postman y base de datos en disco
 1. Levantar postgresdb:
 ```bash
@@ -75,12 +100,6 @@ mvn spring-boot:run "-Dspring-profiles.active=local"
     mvn clean test -Dspring-profiles.active=local
 ```
 
-# Info. Repositorio
-Hay un proyecto hermano llamado ["frontend-abm-usuarios"](https://github.com/GonzaEC/frontend-adm-usuarios)
-Hay 2 ramas en main, estan espejadas.
-La rama no main (nombre no especificado) se encarga del hosting.
-La rama main esta reservada para la implementacion en k8.
-
 # TODO
 - [ ] Estructurar la base de datos en Postgres para manejar la relación entre los inversores y los tokens de los proyectos.
 - [ ] Implementar los servicios para las acciones específicas de los Inversores (tokens, mercado secundario).
@@ -93,4 +112,4 @@ La rama main esta reservada para la implementacion en k8.
 - [ ] Aplicar la regla "Un admin no puede demotear a otro admin" desde el front-end (revisar el controlador asociado)
 - [x] Quitar niveles de anidamiento a JwtAuthenticationFilter.java
 - [ ] Limpiar/emprolijar/Simplificar RbacIntegrationTest.java
-- [ ] Generar projectService.invest(user, project, amount) y sus pruebas.
+- [ ] Armar test que asegure que la sumatoria de UserProject.tokensAmount no supere el Project.max_amount_tokens.

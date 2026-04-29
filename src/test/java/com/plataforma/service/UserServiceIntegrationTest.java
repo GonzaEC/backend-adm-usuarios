@@ -6,7 +6,6 @@ import com.plataforma.model.*;
 import com.plataforma.repository.ProjectRepository;
 import com.plataforma.repository.RoleRepository;
 import com.plataforma.repository.UserRepository;
-
 import com.plataforma.constant.RoleConstants;
 
 import com.plataforma.exception.OwnershipException;

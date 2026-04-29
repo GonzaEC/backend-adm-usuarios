@@ -254,7 +254,12 @@ public class RbacIntegrationTest
 			"user+" + System.nanoTime() + "@mail.com",
 			"1234"
 		);
-		String body = "{\"roleId\": 3}"; // PUEDE FALLAR SI NO EXISTE!!
+
+		Role devRole = roleRepository.findByName(RoleConstants.DEVELOPER)
+			.orElseThrow();
+
+		String body = "{\"roleId\": " + devRole.getId() + "}";
+
 		mockMvc.perform(put("/api/users/"+userId+"/role")
 			.header("Authorization", bearer(adminToken))
 			.contentType(MediaType.APPLICATION_JSON)
@@ -355,8 +360,10 @@ public class RbacIntegrationTest
 	{
 		String adminToken = createAdminAndLogin();
 		String userToken  = createBasicAndLogin();
+
+		Role adminRole = roleRepository.findByName(RoleConstants.ADMIN).orElseThrow();
 	
-		mockMvc.perform(delete("/api/roles/1")
+		mockMvc.perform(delete("/api/roles/" + adminRole.getId())
 			.header("Authorization", bearer(userToken)))
 			.andExpect(status().isForbidden());
 	}

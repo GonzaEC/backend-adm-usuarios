@@ -1,6 +1,7 @@
-// src/test/java/com/plataforma/service/UserMnagementIntegrationTest.java
+// src/test/java/com/plataforma/service/UserManagementIntegrationTest.java
 package com.plataforma.service;
 
+import com.plataforma.AbstractIntegrationTest;
 import com.plataforma.constant.RoleConstants;
 
 import com.plataforma.model.*;
@@ -8,26 +9,20 @@ import com.plataforma.model.*;
 import com.plataforma.repository.RoleRepository;
 import com.plataforma.repository.UserRepository;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.boot.test.context.SpringBootTest;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class UserManagementIntegrationTest
+@Tag("integration")
+class UserManagementIntegrationTest extends AbstractIntegrationTest
 {
 	@Autowired
 	private UserService userService;

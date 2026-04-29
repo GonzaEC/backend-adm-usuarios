@@ -1,6 +1,7 @@
 // src/main/java/com/plataforma/model/Project.java
 package com.plataforma.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,12 @@ public class Project extends Auditable
 	@Builder.Default
 	private ProjectState state = ProjectState.DRAFT;
 
-	private Long max_amount_tokens;
+	private Long maxAmountTokens;
+
+	@Column(nullable = false, precision = 19, scale = 2)
+	private BigDecimal tokenPrice; // Representa el precio unitario del token al momento de publicar el proyecto.
+	// Se usa en InvestmentServiceImpl para calcular el totalAmount.
+
 
 	public boolean isOwnedBy(User user)
 	{

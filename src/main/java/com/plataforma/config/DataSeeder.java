@@ -15,6 +15,7 @@ import com.plataforma.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import java.util.Set;
@@ -24,7 +25,8 @@ import java.util.Set;
  *  se usa un componente que se ejecuta una sola vez al iniciar la app.
  *  Este asegura que los permisos y roles existan en la DB.
  */
-@Component
+// @Component // solo habilitarlo para insertar datos nuevos/distintos
+@Profile("dev")
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner
 {

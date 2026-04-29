@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+import com.plataforma.repository.RoleRepository;
+import com.plataforma.constant.RoleConstants;
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 class UserAuditTest
 {
+
+	@Autowired
+	private RoleRepository roleRepository;
 
 	@Autowired
 	private TestEntityManager em;
@@ -36,11 +42,8 @@ class UserAuditTest
 	@Test
 	void shouldSetCreatedAtOnPersist()
 	{
-		Role role = Role.builder()
-			.name("ADMIN")
-			.build();
-
-		em.persist(role);
+		Role role = roleRepository.findByName(RoleConstants.ADMIN)
+			.orElseThrow();
 
 		User user = User.builder()
 			.email("test@test.com")
@@ -57,11 +60,8 @@ class UserAuditTest
 	@Test
 	void shouldSetUpdatedAtOnUpdate() throws InterruptedException
 	{
-		Role role = Role.builder()
-			.name("ADMIN")
-			.build();
-
-		em.persist(role);
+		Role role = roleRepository.findByName(RoleConstants.ADMIN)
+			.orElseThrow();
 
 		User user = User.builder()
 			.email("test@test.com")
@@ -78,7 +78,7 @@ class UserAuditTest
 		user.setPassword("456");
 
 		Thread.sleep(5); // evitar misma timestamp
-		em.persist(user);
+		em.merge(user);
 		em.flush();
 
 		assertAuditOnUpdate(user, createdAt);
@@ -87,7 +87,8 @@ class UserAuditTest
 	@Test
 	void projectShouldHaveAuditFields()
 	{
-		Role role = em.persist(Role.builder().name("ADMIN").build());
+		Role role = roleRepository.findByName(RoleConstants.ADMIN)
+			.orElseThrow();
 
 		User user = em.persist(User.builder()
 			.email("owner@test.com")
@@ -98,6 +99,7 @@ class UserAuditTest
 		Project project = Project.builder()
 			.name("Test Project")
 			.owner(user)
+			.tokenPrice(new java.math.BigDecimal("100.00"))
 			.build();
 
 			em.persist(project);
