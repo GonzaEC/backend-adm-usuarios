@@ -23,7 +23,7 @@ public class JwtUtils {
 	// En produccion, esta clave debe venir de una variable de entorno
 	private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-	private final int jwtExpirationMs = 86400000; // 24 horas
+	private final int jwtExpirationMs = 900000; // 15 minutos
 
 	private Claims extractAllClaims(String token)
 	{
