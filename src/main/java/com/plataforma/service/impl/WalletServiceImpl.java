@@ -8,6 +8,7 @@ import com.plataforma.repository.WalletRepository;
 import com.plataforma.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -29,17 +30,18 @@ public class WalletServiceImpl implements WalletService
 	@Override
 	public void validateSufficientFunds(Wallet wallet, BigDecimal amount)
 	{
-		if (wallet.getBalance().compareTo(amount) < 0)
+		if (!wallet.hasSufficientFunds(amount))
 			throw new InsufficientFundsException(
-				"Saldo insuficiente: disponible %s, requerido %s"
-				.formatted(wallet.getBalance(), amount)
+				"Saldo insuficiente. Disponible: " + wallet.getBalance()
+				+ " — Requerido: " + amount
 			);
-		}
+	}
 
 	@Override
+	@Transactional
 	public void debit(Wallet wallet, BigDecimal amount)
 	{
-		wallet.setBalance(wallet.getBalance().subtract(amount));
+		wallet.debit(amount);
 		walletRepository.save(wallet);
 	}
 }

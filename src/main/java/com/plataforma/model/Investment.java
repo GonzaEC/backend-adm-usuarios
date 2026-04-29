@@ -5,12 +5,12 @@ import java.math.BigDecimal;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Setter;
 
 @Entity
 @Table(name = "investments")
 @Data
-@EqualsAndHashCode(callSuper = false)
+@Setter
 public class Investment extends Auditable
 {
 	@Id
