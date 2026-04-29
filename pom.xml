@@ -141,9 +141,15 @@
 	</build>
 
 	<!--
-	    mvn test                → unit        (H2, rápido, sin Docker)
-	    mvn test -Pintegration  → integration (Postgres vía docker-compose)
-	    mvn test -Pall          → unit + integration
+	    mvn test               → unit        (H2, rápido, sin Docker)
+	    mvn test -Pintegration → integration (Postgres vía docker-compose)
+
+	    Para correr ambos en secuencia:
+	        docker compose up -d && mvn test && mvn test -Pintegration
+
+	    NOTA: un perfil "all" que corra unit + integration en una sola pasada
+	    requiere dos ejecuciones de Surefire con distintos spring.profiles.active,
+	    lo cual complica significativamente el pom. Se dejó como deuda técnica.
 	-->
 	<profiles>
 
@@ -175,35 +181,6 @@
 							<systemPropertyVariables>
 								<spring.profiles.active>integration</spring.profiles.active>
 							</systemPropertyVariables>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!--
-			Perfil "all"
-			- Corre unit + integration en una sola pasada.
-			- Útil para CI o verificación local completa.
-			- Prerequisito: `docker compose up -d` corriendo antes de ejecutar.
-		-->
-		<profile>
-			<id>all</id>
-			<dependencies>
-				<dependency>
-					<groupId>org.flywaydb</groupId>
-					<artifactId>flyway-database-postgresql</artifactId>
-					<version>${flyway.version}</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<!-- Sin filtros: corre TODO -->
 						</configuration>
 					</plugin>
 				</plugins>
