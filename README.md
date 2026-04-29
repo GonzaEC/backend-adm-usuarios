@@ -60,44 +60,190 @@ Una vez instalado el software, puede que Windows no sepa donde está guardado el
     mvn spring-boot:run
 ```
 
-# Uso
-## Pruebas locales
-### Test Unitarios
-Ejecutar Todos menos "IntegrationTest":
+# Tests de Integración
+
+## Cómo correrlos
+
 ```bash
-    mvn test -Dtest=!*IntegrationTest
+# 1. Levantar la base de datos local
+docker compose up -d
+
+# 2. Correr los tests de integración
+mvn test -Pintegration
+
+# 3. (Opcional) Bajar la base de datos al terminar
+docker compose down
 ```
 
-### Tests Integracion
-1. Levantar postgresdb:
+## Otros comandos útiles
+
 ```bash
-docker-compose up
-```
-2. Ejecutar:
-```bash
-    mvn test -Dtest=*IntegrationTest
+mvn test                # Solo unit tests (H2 en memoria, sin Docker, rápido)
+mvn test -Pintegration  # Solo integration tests (requiere Docker)
+mvn test -Pall          # Unit + integration juntos (CI/CD completo)
 ```
 
-### Tests Especificos
-Ejecutar:
-```bash
-    mvn test -Dtest=AccessControlServiceTest
+---
+
+## Arquitectura del mecanismo
+
+### Visión general
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        mvn test -Pintegration               │
+└─────────────────────────────────┬───────────────────────────┘
+                                  │
+                    activa perfil Maven "integration"
+                                  │
+              ┌───────────────────▼────────────────────┐
+              │          maven-surefire-plugin         │
+              │   groups=integration / exclude=unit    │
+              │   spring.profiles.active=integration   │
+              └───────────────────┬────────────────────┘
+                                  │
+                    solo corre clases @Tag("integration")
+                                  │
+              ┌───────────────────▼────────────────────┐
+              │         AbstractIntegrationTest        │
+              │  @SpringBootTest                       │
+              │  @AutoConfigureMockMvc                 │
+              │  @ActiveProfiles("integration")        │
+              │  @Transactional                        │
+              └───────────────────┬────────────────────┘
+                                  │
+                 levanta contexto Spring completo
+                 carga application-integration.properties
+                                  │
+              ┌───────────────────▼────────────────────┐
+              │  application-integration.properties    │
+              │  url=jdbc:postgresql://localhost:5432/ │
+              │  flyway.enabled=true                   │
+              └───────────────────┬────────────────────┘
+                                  │
+                    Flyway aplica migraciones reales
+                                  │
+              ┌───────────────────▼────────────────────┐
+              │         docker-compose.yml             │
+              │         postgres:15-alpine             │
+              │         localhost:5432/sip_project     │
+              └────────────────────────────────────────┘
 ```
 
-### Postman y base de datos en disco
-1. Levantar postgresdb:
-```bash
-docker-compose up
-```
-2. Correr la app con perfil local:
-```bash
-mvn spring-boot:run "-Dspring-profiles.active=local"
-```
-3. Correr el suite de test en postman.
+### Las piezas y su responsabilidad
 
-### Unit testing con Hibernate
-```bash
-    mvn clean test -Dspring-profiles.active=local
+**`docker-compose.yml`** — levanta un contenedor Postgres real en `localhost:5432`.
+Es la única "infraestructura" externa requerida. El desarrollador lo inicia
+manualmente antes de correr los tests.
+
+**Perfil Maven `integration`** (`pom.xml`) — cuando se activa con `-Pintegration`,
+reconfigura Surefire para que corra exclusivamente los tests marcados con
+`@Tag("integration")` e inyecta `spring.profiles.active=integration` como
+variable de sistema.
+
+**`application-integration.properties`** — perfil Spring que apunta al Postgres
+del docker-compose. Habilita Flyway para que aplique las migraciones reales
+antes de que arranquen los tests. El contexto Spring lo carga automáticamente
+al detectar el perfil activo `integration`.
+
+**`AbstractIntegrationTest`** — clase base que todos los tests de integración
+extienden. Centraliza las cuatro anotaciones clave:
+- `@SpringBootTest`: levanta el contexto completo de la aplicación (todos los beans,
+  seguridad, repositorios, servicios), a diferencia de los slices parciales como
+  `@DataJpaTest` o `@WebMvcTest`.
+- `@AutoConfigureMockMvc`: registra el bean `MockMvc` en el contexto, necesario
+  para hacer llamadas HTTP simuladas a los controllers.
+- `@ActiveProfiles("integration")`: selecciona `application-integration.properties`.
+- `@Transactional`: envuelve cada test en una transacción que hace **rollback**
+  automático al terminar. Esto mantiene la DB limpia entre tests sin necesidad
+  de resetear el contenedor.
+
+**`@Tag("integration")`** en cada clase — etiqueta que Surefire usa para filtrar.
+Sin este tag, el test corre también con `mvn test` normal (sin `-Pintegration`),
+lo que fallaría porque no hay Docker disponible.
+
+---
+
+## Tips para escribir nuevos tests de integración
+
+### 1. Siempre extender `AbstractIntegrationTest`
+```java
+@Tag("integration")
+class MiNuevoIntegrationTest extends AbstractIntegrationTest {
+    // ...
+}
+```
+Sin `extends AbstractIntegrationTest` el test no tiene MockMvc, no apunta
+a Postgres y no hace rollback. El `@Tag("integration")` también es obligatorio
+para que Surefire lo incluya en el perfil correcto.
+
+### 2. El rollback es automático, pero hay una trampa
+`@Transactional` en la clase base hace rollback después de cada test, lo que
+mantiene la DB limpia. Sin embargo, si tu código bajo prueba llama a métodos
+anotados con `@Transactional(propagation = REQUIRES_NEW)`, esa transacción
+interna se commitea igual y el rollback del test no la deshace. En esos casos
+hay que limpiar manualmente en un `@AfterEach`.
+
+### 3. Datos de referencia ya existen: no los crees, búscalos
+Flyway aplica las migraciones reales al arrancar el contexto, incluyendo el
+seed de roles y permisos. Buscalos con el repositorio en lugar de insertarlos:
+```java
+// Bien
+Role devRole = roleRepository.findByName(RoleConstants.DEVELOPER).orElseThrow();
+
+// Mal: puede romper constraints de unicidad o datos existentes
+roleRepository.save(new Role("DEVELOPER"));
+```
+
+### 4. Usuarios y datos de test: usar valores únicos
+Como múltiples tests comparten la misma DB (aunque con rollback), si un test
+falla antes del rollback puede dejar datos sucios. Usar valores únicos por
+ejecución evita colisiones:
+```java
+String email = "test+" + System.nanoTime() + "@mail.com";
+```
+
+### 5. BigDecimal para campos monetarios
+Los campos `NOT NULL` de tipo `BigDecimal` en el modelo deben setearse
+explícitamente en el builder. El literal `double` no compila:
+```java
+// Bien
+.tokenPrice(BigDecimal.valueOf(100.00))
+
+// No compila si el campo es BigDecimal
+.tokenPrice(100.00)
+```
+
+### 6. Separar la responsabilidad del test
+- Tests en `service/` → inyectar servicios y repositorios directamente, sin MockMvc.
+- Tests en `api/` o `controller/` → usar MockMvc para ejercitar el stack HTTP completo
+  (serialización, seguridad, validaciones de request).
+- No mezclar: un test de integración de servicio no necesita hacer llamadas HTTP.
+
+### 7. Flujo típico de un test de API con autenticación
+```java
+@Test
+void miTest() throws Exception {
+    // 1. Obtener token real haciendo login
+    String token = loginYObtenerToken("admin@mail.com", "password");
+
+    // 2. Llamar al endpoint con el token
+    mockMvc.perform(get("/api/recurso")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        .andExpect(status().isOk());
+}
+```
+
+### 8. Verificar el estado en DB además del HTTP response
+Un test de integración tiene acceso a los repositorios. Aprovecharlo para
+verificar que los datos realmente se persistieron, no solo que el endpoint
+devolvió 200:
+```java
+mockMvc.perform(post("/api/usuarios").content(body)...)
+    .andExpect(status().isCreated());
+
+// Verificar persistencia real
+assertTrue(userRepository.findByEmail("nuevo@mail.com").isPresent());
 ```
 
 # TODO
