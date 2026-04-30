@@ -27,4 +27,19 @@ public class Investment extends Auditable
 
 	private BigDecimal amountPaid; // dinero real
 	private BigDecimal tokenPrice; // cuanto costaba el token en ese momento.
+
+	public void set(
+		User       investor,
+		Project    project,
+		Long       tokensPurchased,
+		BigDecimal amountPaid,
+		BigDecimal tokenPrice
+	)
+	{
+		this.setUser(investor);
+		this.setProject(project);
+		this.setTokensPurchased(tokensPurchased);
+		this.setAmountPaid(amountPaid);
+		this.setTokenPrice(tokenPrice);
+	}
 }
