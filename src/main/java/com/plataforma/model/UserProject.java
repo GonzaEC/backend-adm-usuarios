@@ -5,6 +5,9 @@ package com.plataforma.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 @Entity
 @Table(
 	name = "user_projects",
@@ -12,6 +15,8 @@ import lombok.*;
 		@UniqueConstraint(columnNames = {"user_id", "project_id"})
 	}
 )
+@SQLDelete(sql = "UPDATE user_projects SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor

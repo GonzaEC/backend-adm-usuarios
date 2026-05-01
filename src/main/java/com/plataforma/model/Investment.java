@@ -7,8 +7,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Setter;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 @Entity
 @Table(name = "investments")
+@SQLDelete(sql = "UPDATE investments SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 @Data
 @Setter
 public class Investment extends Auditable
