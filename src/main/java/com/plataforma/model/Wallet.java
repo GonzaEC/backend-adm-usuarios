@@ -8,6 +8,9 @@ import com.plataforma.exception.InsufficientFundsException;
 import jakarta.persistence.*;
 import lombok.*;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 /**
  * Representa el monedero de un inversor dentro de la plataforma.
  *
@@ -25,6 +28,8 @@ import lombok.*;
  */
 @Entity
 @Table(name = "wallets")
+@SQLDelete(sql = "UPDATE wallets SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor

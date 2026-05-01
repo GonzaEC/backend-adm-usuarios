@@ -7,8 +7,13 @@ import java.util.Set;
 import jakarta.persistence.*;
 import lombok.*;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 @Entity
 @Table(name = "roles")
+@SQLDelete(sql = "UPDATE roles SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false AND active = true")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Getter

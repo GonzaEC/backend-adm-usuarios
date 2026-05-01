@@ -8,6 +8,9 @@ import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 /**
  * ¿Por que usar un User en vez de un long int para el owner?
  * Navegabilidad
@@ -35,6 +38,8 @@ import lombok.*;
  */
 @Entity
 @Table(name="projects")
+@SQLDelete(sql = "UPDATE projects SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor

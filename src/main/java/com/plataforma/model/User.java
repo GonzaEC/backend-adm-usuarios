@@ -7,8 +7,13 @@ import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false AND active = true")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor

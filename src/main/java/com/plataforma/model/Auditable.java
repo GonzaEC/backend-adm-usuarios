@@ -26,6 +26,9 @@ public abstract class Auditable
 	@Column(name = "updated_at")
 	protected LocalDateTime updatedAt;
 
+	@Column(nullable = false)
+	protected boolean deleted = false;
+
 	@PrePersist
 	protected void onCreate()
 	{
